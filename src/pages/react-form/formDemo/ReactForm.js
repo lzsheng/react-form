@@ -120,10 +120,6 @@ const FormDecorate = () => {
         this.hideWarn(fieldName)
       }
 
-      /**
-       * 校验并获取一组输入域的值与 Error，若 fieldNames 参数为空，则校验全部组件
-       *
-       */
       validateFields = () => {
         let formValid_isPass = true
         const fieldNames = Object.keys(this.inputStore)//遍历出所有的字段名称

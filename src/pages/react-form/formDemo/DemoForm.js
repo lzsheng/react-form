@@ -142,7 +142,6 @@ class DemoForm extends Component {
             id="sex_male"
             name="sex"
             type="radio"
-            checked={true}
             {...getFieldProps('sex.male', {
               rule: {}
             }) } />
