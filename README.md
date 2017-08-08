@@ -6,3 +6,10 @@ mac
   sudo npm run dev
   打开浏览器，输入 http://0.0.0.0:8080/reactForm/#/
 ```
+
+demo link
+
+```
+  打开浏览器开发者工具，查看数据变动
+  https://lzsheng.github.io/react-form/dist/reactForm/#/
+```
