@@ -5,7 +5,7 @@ const path = require('path')
 const config = merge(baseConfig,{
   output:{
     path:path.resolve(__dirname,'../dist/reactForm/'),
-    publicPath:'/reactForm/',
+    publicPath:'./',
     filename:'[name].[chunkhash].bundle.js',
     chunkFilename:'[name].[chunkhash].chunk.js'
   },
