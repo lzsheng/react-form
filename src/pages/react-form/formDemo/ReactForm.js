@@ -15,12 +15,28 @@ const FormDecorate = () => {
 
       static displayName = `HOC(${getDisplayName(WrappedComponent)})`//更改组件名称
 
-      //给input输出指定的属性
+      //给input输出指定的属性（写在input属性内的）
       getFieldProps = (fieldName, options = {}) => {
+        console.log('getFieldProps', { ...this.props })
         return {
-          ...this.props,
           ref: (e) => { this.bindRef(fieldName, options, e) },
-          onChange: (e) => { this.handleChange(e, fieldName, options) }
+          onChange: (e) => { this.handleChange(e, fieldName, options) },
+        }
+      }
+
+      //包裹input，跟getFieldProps的结果一样，只是调用方法不一样
+      getFieldDecorator = (fieldName, options = {}) => {
+        const _props = this.getFieldProps(fieldName, options)
+        return (fieldElem) => {
+          // let _obj = {}
+          // fieldElem.$$typeof && (_obj.value = options.initialValue)//是否react组件，如果是，则写入value
+          return React.cloneElement(
+            fieldElem,
+            {
+              // ..._obj,
+              ..._props
+            }
+          );
         }
       }
 
@@ -104,19 +120,20 @@ const FormDecorate = () => {
         if ('initialValue' in options) {
           this.setValueFromEvent(fieldName, options.initialValue)
         }
-        console.log(this.inputStore)
+        console.log('bindRef', this.inputStore)
       }
 
       handleChange = (e, fieldName, options) => {
         const { target } = e
-        console.log(target.type)
-        const value = this.getValueFromEvent(fieldName)
+        // const value = this.getValueFromEvent(fieldName)
+        const value = target.value
+        console.log(value)
         const { rule } = options
         const { pattern, required, message } = rule
-        console.log(value)
         if (required && pattern) {
           console.log("handleChange", pattern.test(value) === false ? '验证不通过' : '验证通过')
         }
+        this.setValueFromEvent(fieldName, value)
         this.hideWarn(fieldName)
       }
 
@@ -243,6 +260,7 @@ const FormDecorate = () => {
         const mapFunToProps = {
           form: {
             getFieldProps: this.getFieldProps,
+            getFieldDecorator: this.getFieldDecorator,
             validateFields: this.validateFields,
             getFieldValue: this.getFieldValue,
             getFieldsValue: this.getFieldsValue,

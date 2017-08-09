@@ -34,7 +34,7 @@ class DemoForm extends Component {
   }
 
   toSetFieldValue = () => {
-    this.props.form.setFieldValue('phone', 12345678901)
+    this.props.form.setFieldValue('phone', '12999999999')
   }
 
   toSetFieldsValue = () => {
@@ -49,7 +49,8 @@ class DemoForm extends Component {
   }
 
   render() {
-    const { getFieldProps } = this.props.form
+    const { getFieldProps, getFieldDecorator } = this.props.form
+
     return (
       <div style={{ padding: '30px', fontSize: '14px' }}>
         <input
@@ -91,6 +92,22 @@ class DemoForm extends Component {
               max: 11
             }
           }) } />
+        <br />
+        <br />
+        {
+          getFieldDecorator('address', {
+            rule: {
+              message: "请输入地址",
+              required: true
+            }
+          })(
+            <input
+              type="text"
+              maxLength={30}
+              placeholder="请输入地址"
+            />
+            )
+        }
         <br />
         <br />
         <p>出生年:</p>
@@ -138,27 +155,26 @@ class DemoForm extends Component {
         <div>
           <p>性别</p>
           <label htmlFor="sex_male">
-          <input
-            id="sex_male"
-            name="sex"
-            type="radio"
-            {...getFieldProps('sex.male', {
-              rule: {}
-            }) } />
-          <span> 男</span>
+            <input
+              id="sex_male"
+              name="sex"
+              type="radio"
+              {...getFieldProps('sex.male', {
+                rule: {}
+              }) } />
+            <span> 男</span>
           </label>
-          <label htmlFor="sex_female" style={{marginLeft:'10px'}}>
-          <input
-            id="sex_female"
-            name="sex"
-            type="radio"
-            {...getFieldProps('sex.female', {
-              rule: {}
-            }) } />
-          <span> 女</span>
+          <label htmlFor="sex_female" style={{ marginLeft: '10px' }}>
+            <input
+              id="sex_female"
+              name="sex"
+              type="radio"
+              {...getFieldProps('sex.female', {
+                rule: {}
+              }) } />
+            <span> 女</span>
           </label>
         </div>
-
         <br />
         <br />
         <button onClick={this.saveData}>提交验证</button>
