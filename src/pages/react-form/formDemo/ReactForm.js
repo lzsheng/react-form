@@ -133,7 +133,7 @@ const FormDecorate = () => {
         if (required && pattern) {
           console.log("handleChange", pattern.test(value) === false ? '验证不通过' : '验证通过')
         }
-        this.setValueFromEvent(fieldName, value)
+        // this.setValueFromEvent(fieldName, value)
         this.hideWarn(fieldName)
       }
 
