@@ -270,6 +270,7 @@ const FormDecorate = () => {
         }
         return (
           <WrappedComponent
+            {...this.props}
             {...mapFunToProps}
           />
         );
