@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ReactForm from './ReactForm'
+import RadioGroup from '../RadioGroup'
 
 class DemoForm extends Component {
   constructor(props) {
@@ -43,9 +44,14 @@ class DemoForm extends Component {
       { phone: 12345678901 },
       { year: "1992" },
       { job_fee: true },
-      { job_java: false }
+      { job_java: false },
+      { sex: 'female' }
     ]
     this.props.form.setFieldsValue(...arr)
+  }
+
+  toGetInputStore = (store) => {
+    console.log(this.props.form.getInputStore())
   }
 
   render() {
@@ -113,7 +119,7 @@ class DemoForm extends Component {
         <p>出生年:</p>
         <select
           {...getFieldProps('year', {
-            initialValue: "",
+            initialValue: "1992",
             rule: {
               message: "请选择出生年",
               required: true,
@@ -152,29 +158,21 @@ class DemoForm extends Component {
         </label>
         <br />
         <br />
-        <div>
-          <p>性别</p>
-          <label htmlFor="sex_male">
-            <input
-              id="sex_male"
-              name="sex"
-              type="radio"
-              {...getFieldProps('sex.male', {
-                rule: {}
-              }) } />
-            <span> 男</span>
-          </label>
-          <label htmlFor="sex_female" style={{ marginLeft: '10px' }}>
-            <input
-              id="sex_female"
-              name="sex"
-              type="radio"
-              {...getFieldProps('sex.female', {
-                rule: {}
-              }) } />
-            <span> 女</span>
-          </label>
-        </div>
+        <p>性别</p>
+        {
+          getFieldDecorator('sex', {
+            initialValue: 'male',
+            rule: {
+              required: true,
+              message: "请选择性别"
+            }
+          })(
+            <RadioGroup>
+              男<input id="sex_male" type="radio" name="sex" value="male" />
+              &nbsp; 女<input id="sex_female" type="radio" name="sex" value="female" />
+            </RadioGroup>
+            )
+        }
         <br />
         <br />
         <button onClick={this.saveData}>提交验证</button>
@@ -193,6 +191,9 @@ class DemoForm extends Component {
         <br />
         <br />
         <button onClick={this.toSetFieldsValue}>设置值(多个)</button>
+        <br />
+        <br />
+        <button onClick={this.toGetInputStore}>获取inputStore</button>
         <br />
         <br />
       </div>

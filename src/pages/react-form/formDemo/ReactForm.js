@@ -15,39 +15,66 @@ const FormDecorate = () => {
 
       static displayName = `HOC(${getDisplayName(WrappedComponent)})`//更改组件名称
 
+      handleChange = (e, fieldName, options) => {
+        const { target } = e
+        // const value = this.getValueFromEvent(fieldName)
+        const value = target.value
+        console.log(fieldName, value)
+        const { rule } = options
+        const { pattern, required, message } = rule
+        if (required && pattern) {
+          console.log("handleChange", pattern.test(value) === false ? '验证不通过' : '验证通过')
+        }
+        this.hideWarn(fieldName)
+        this.setFieldValue(fieldName, value)
+      }
+
       //给input输出指定的属性（写在input属性内的）
       getFieldProps = (fieldName, options = {}) => {
-        console.log('getFieldProps', { ...this.props })
+        // console.log('getFieldProps', { ...this.props })
         return {
           ref: (e) => { this.bindRef(fieldName, options, e) },
           onChange: (e) => { this.handleChange(e, fieldName, options) },
         }
       }
 
-      //包裹input，跟getFieldProps的结果一样，只是调用方法不一样
-      getFieldDecorator = (fieldName, options = {}) => {
-        const _props = this.getFieldProps(fieldName, options)
-        return (fieldElem) => {
-          // let _obj = {}
-          // fieldElem.$$typeof && (_obj.value = options.initialValue)//是否react组件，如果是，则写入value
-          return React.cloneElement(
-            fieldElem,
-            {
-              // ..._obj,
-              ..._props
-            }
-          );
+      setValueFromStore = (fieldName, value) => {
+        this.inputStore[fieldName].value = value
+        this.forceUpdate()
+      }
+
+      getValueFromStore = (fieldName) => {
+        // console.log('getValueFromStore')
+        if (this.inputStore[fieldName] && (typeof (this.inputStore[fieldName].value) !== 'undefined')) {
+          return this.inputStore[fieldName].value
+        } else {
+          return undefined
         }
       }
 
-      // submit = () => {
-      //   console.log('submit')
-      //   if (this.validateFields()) {
-      //     console.log("验证通过，提交数据")
-      //   } else {
-      //     console.log("验证不通过")
-      //   }
-      // }
+      //包裹input，跟getFieldProps的结果一样，只是调用方法不一样
+      getFieldDecorator = (fieldName, options = {}) => {
+        this.getInputStoreCache(fieldName)
+        const _props = this.getFieldProps(fieldName, options)
+        let _value = this.getValueFromStore(fieldName)
+        _value = typeof (_value) === 'undefined' ? options.initialValue : _value
+        _value = typeof (_value) === 'undefined' ? '' : _value//HACK:initialValue为undefined的情况
+        // console.log('getFieldDecorator', fieldName, _value)
+        return (fieldElem) => {
+          //判断该fieldName是否使用了getFieldDecorator来包装
+          //isDecoratorElem字段后续用来判断set value和get value的方法
+          this.inputStore[fieldName].isDecoratorElem = true
+          //使用React.cloneElement给组件添加新的props
+          return React.cloneElement(
+            fieldElem,
+            {
+              value: _value,
+              ..._props
+            }
+          );
+
+        }
+      }
 
       /**
        * 获取一组输入控件的值，如不传入参数，则获取全部组件的值
@@ -72,6 +99,9 @@ const FormDecorate = () => {
        */
       getFieldValue = (fieldName = '') => {
         if (fieldName && typeof (fieldName) === 'string') {
+          if (this.inputStore[fieldName].isDecoratorElem) {
+            return this.getValueFromStore(fieldName)
+          }
           return this.getValueFromEvent(fieldName)
         } else {
           throw `getFieldValue参数fieldName类型错误`
@@ -95,46 +125,29 @@ const FormDecorate = () => {
        * 参数: fieldName, value
        */
       setFieldValue = (fieldName, value) => {
-        this.setValueFromEvent(fieldName, value)
+        // console.log('setFieldValue', fieldName, value)
+        if (this.inputStore[fieldName].isDecoratorElem) {
+          this.setValueFromStore(fieldName, value)
+        } else {
+          this.setValueFromEvent(fieldName, value)
+        }
       }
 
       bindRef = (fieldName, options, component) => {
+        //判断是否已经存在cache了
+        if (typeof this.getInputStoreCache(fieldName).fieldName !== 'undefined') {
+          return false
+        }
         const { rule } = options
-        this.inputStore[fieldName] = {}
+
         this.inputStore[fieldName].fieldName = fieldName
         this.inputStore[fieldName].refName = `${fieldName}__ref`
         this.inputStore[fieldName].ref = component//ref实例
         this.inputStore[fieldName].options = options
-        // this.inputStore[fieldName].isNested = false//是否组合名称
-
-        //组合名称 例如fieldName="sex.female"
-        // const nameIfNested = this.getNameIfNested(fieldName)
-        // if (nameIfNested.isNested) {
-        //   this.inputStore[fieldName].isNested = true
-        //   this.inputStore[fieldName].nestedName = nameIfNested.name//sex
-        //   this.inputStore[fieldName].nestedValue = nameIfNested.value//female
-        //   this.bindRef(nameIfNested.name,{},undefined)
-        // }
-
         //设置初始值
         if ('initialValue' in options) {
-          this.setValueFromEvent(fieldName, options.initialValue)
+          this.setFieldValue(fieldName, options.initialValue)
         }
-        console.log('bindRef', this.inputStore)
-      }
-
-      handleChange = (e, fieldName, options) => {
-        const { target } = e
-        // const value = this.getValueFromEvent(fieldName)
-        const value = target.value
-        console.log(value)
-        const { rule } = options
-        const { pattern, required, message } = rule
-        if (required && pattern) {
-          console.log("handleChange", pattern.test(value) === false ? '验证不通过' : '验证通过')
-        }
-        this.setValueFromEvent(fieldName, value)
-        this.hideWarn(fieldName)
       }
 
       validateFields = () => {
@@ -146,7 +159,7 @@ const FormDecorate = () => {
           const that = this.inputStore[fieldName]
           const { options } = that
           if (typeof (options.rule) === 'undefined') { continue }
-          const value = this.getValueFromEvent(fieldName)
+          const value = this.getFieldValue(fieldName)
           const {
             message,//校验文案
             pattern,//正则表达式
@@ -161,8 +174,9 @@ const FormDecorate = () => {
             pass: false,
             message: message
           }//pass-该字段是否验证通过,message-验证不通过时的提示语
+          console.log(fieldName, required, value)
           if (required) {
-            if (value === "") {
+            if (value === "" || typeof value === 'undefined') {
               //值为空
               this.showWarn(fieldName)
               continue
@@ -221,40 +235,32 @@ const FormDecorate = () => {
       }
 
       showWarn = (fieldName) => {
-        this.getRefByFieldName(fieldName).style.borderColor = "red"
+        try {
+          this.getRefByFieldName(fieldName).style.borderColor = "red"
+        } catch (error) {
+
+        }
       }
 
       hideWarn = (fieldName) => {
-        this.getRefByFieldName(fieldName).style.borderColor = ""
+        try {
+          this.getRefByFieldName(fieldName).style.borderColor = ""
+        } catch (error) {
+
+        }
       }
 
-      //判断fieldName是否为组合名称
-      // getNameIfNested = (fieldName) => {
-      //   const NAME_KEY_SEP = '.';
-      //   const NAME_INDEX_OPEN_SEP = '[';
-      //   const keyIndex = fieldName.indexOf(NAME_KEY_SEP);
-      //   const arrayIndex = fieldName.indexOf(NAME_INDEX_OPEN_SEP);
+      getInputStore = () => {
+        return this.inputStore
+      }
 
-      //   let index;
-
-      //   if (keyIndex === -1 && arrayIndex === -1) {
-      //     return {
-      //       name: fieldName,
-      //     };
-      //   } else if (keyIndex === -1) {
-      //     index = arrayIndex;
-      //   } else if (arrayIndex === -1) {
-      //     index = keyIndex;
-      //   } else {
-      //     index = Math.min(keyIndex, arrayIndex);
-      //   }
-
-      //   return {
-      //     name: fieldName.slice(0, index),
-      //     isNested: true,
-      //     value: fieldName.slice(index + 1, fieldName.length)
-      //   };
-      // }
+      getInputStoreCache = (fieldName) => {
+        if (typeof this.inputStore[fieldName] === 'undefined') {
+          //如果没有fieldName的cache，则会创建一个
+          this.inputStore[fieldName] = {}
+        }
+        return this.inputStore[fieldName]
+      }
 
       render() {
         const mapFunToProps = {
@@ -266,10 +272,12 @@ const FormDecorate = () => {
             getFieldsValue: this.getFieldsValue,
             setFieldValue: this.setFieldValue,
             setFieldsValue: this.setFieldsValue,
+            getInputStore: this.getInputStore,
           }
         }
         return (
           <WrappedComponent
+            {...this.props}
             {...mapFunToProps}
           />
         );
