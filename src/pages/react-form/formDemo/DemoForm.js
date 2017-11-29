@@ -41,11 +41,9 @@ class DemoForm extends Component {
   toSetFieldsValue = () => {
     const arr = [
       { username: "lzs" },
-      { phone: 12345678901 },
+      { phone: 13144414163 },
       { year: "1992" },
-      { job_fee: true },
-      { job_java: false },
-      { sex: 'female' }
+      { address: "广东省广州市" },
     ]
     this.props.form.setFieldsValue(...arr)
   }
@@ -135,13 +133,14 @@ class DemoForm extends Component {
         </select>
         <br />
         <br />
+        {/*
         <p>职业:</p>
         <label htmlFor="fee">
           <input
             id="fee"
             type="checkbox"
             {...getFieldProps('job_fee', {
-              initialValue: true,
+              initialValue: false,
               rule: {}
             }) } />
           <span> web前端开发工程师</span>
@@ -158,8 +157,9 @@ class DemoForm extends Component {
         </label>
         <br />
         <br />
-        <p>性别</p>
-        {
+          */}
+        {/*<p>性别</p>*/}
+        {/*
           getFieldDecorator('sex', {
             initialValue: 'male',
             rule: {
@@ -172,7 +172,7 @@ class DemoForm extends Component {
               &nbsp; 女<input id="sex_female" type="radio" name="sex" value="female" />
             </RadioGroup>
             )
-        }
+          */}
         <br />
         <br />
         <button onClick={this.saveData}>提交验证</button>
